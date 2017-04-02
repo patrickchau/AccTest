@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
-    private float magnitudeThreshold = 0.1F;
+    private float magnitudeThreshold = 0.09F;
     private float move = 10;
     private static int maxSamples = 4;
 
-    private float loLim = 0.005F;
-    private float hiLim = 0.1F;
+    private float loLim = 0.006F;
+    private float hiLim = 0.06F;
     private int steps = 0;
     private bool stateH = false;
     private float fHigh = 10.0F;
@@ -37,16 +37,19 @@ public class CameraMovement : MonoBehaviour
         for(int i = 0; i<maxSamples; i++) {
             pastMagnitudes[i] = 0;
             pastDirections[i] = 0;
+            pastXVal[i] = 0;
+            pastZVal[i] = 0;
         }
     }
     // Update is called once per frame
     void Update()
     {
         if (findVector() && stepDetector()) {
-            Vector3 temp = new Vector3(transform.position.x + ((move*avgX/avgMagnitude)), -3, transform.position.z + ((move*avgZ/avgMagnitude)));
-            transform.position = temp;
+            float angle = transform.GetChild(0).transform.rotation.eulerAngles.y;
+            Vector3 temp = new Vector3(transform.position.x + move*Mathf.Sin(angle), -3, transform.position.z + move*Mathf.Cos(angle));
+            transform.position = Vector3.Lerp(transform.position, temp, 0.5f);
         }
-
+        //transform.rotation = transform.GetChild(0).transform.rotation;
     }
 
 
@@ -148,11 +151,9 @@ public class CameraMovement : MonoBehaviour
         
         avgX = avgX + (ax - pastXVal[head]) / maxSamples;
         pastXVal[head] = ax;
-        avgZ = avgZ + (az - pastXVal[head]) / maxSamples;
-        pastXVal[head] = az;
-        
-
-
+        avgZ = avgZ + (az - pastZVal[head]) / maxSamples;
+        pastZVal[head] = az;
+      
         head++;
         if (head == maxSamples)
         {
