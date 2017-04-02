@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
-    private float magnitudeThreshold = 0.09F;
+    private float magnitudeThreshold = 0.1F;
     private float move = 10;
-    private static int maxSamples = 4;
+    private static int maxSamples = 5;
 
     private float loLim = 0.006F;
     private float hiLim = 0.06F;
@@ -46,8 +46,8 @@ public class CameraMovement : MonoBehaviour
     {
         if (findVector() && stepDetector()) {
             float angle = transform.GetChild(0).transform.rotation.eulerAngles.y;
-            Vector3 temp = new Vector3(transform.position.x + move*Mathf.Sin(angle), -3, transform.position.z + move*Mathf.Cos(angle));
-            transform.position = Vector3.Lerp(transform.position, temp, 0.5f);
+            Vector3 temp = new Vector3(transform.position.x + move*Mathf.Cos(angle), -3, transform.position.z + move*Mathf.Sin(angle));
+            transform.position = temp;
         }
         //transform.rotation = transform.GetChild(0).transform.rotation;
     }
