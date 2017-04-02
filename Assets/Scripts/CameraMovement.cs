@@ -6,10 +6,10 @@ public class CameraMovement : MonoBehaviour
 {
     private float magnitudeThreshold = 0.1F;
     private float move = 10;
-    private static int maxSamples = 1;
+    private static int maxSamples = 4;
 
     private float loLim = 0.005F;
-    private float hiLim = 0.08F;
+    private float hiLim = 0.1F;
     private int steps = 0;
     private bool stateH = false;
     private float fHigh = 10.0F;
@@ -23,6 +23,10 @@ public class CameraMovement : MonoBehaviour
     private float[] pastMagnitudes = new float[maxSamples];
     private float avgDirection = 0;
     private float[] pastDirections = new float[maxSamples];
+    private float avgX = 0;
+    private float[] pastXVal = new float[maxSamples];
+    private float avgZ = 0;
+    private float[] pastZVal = new float[maxSamples];
     private int head = 0;
     private float PI = Mathf.PI;
 
@@ -39,7 +43,7 @@ public class CameraMovement : MonoBehaviour
     void Update()
     {
         if (findVector() && stepDetector()) {
-            Vector3 temp = new Vector3(transform.position.x + move*avgMagnitude * Mathf.Cos(avgDirection), -3, transform.position.z + move*avgMagnitude * Mathf.Sin(avgDirection));
+            Vector3 temp = new Vector3(transform.position.x + ((move*avgX/avgMagnitude)), -3, transform.position.z + ((move*avgZ/avgMagnitude)));
             transform.position = temp;
         }
 
@@ -83,14 +87,21 @@ public class CameraMovement : MonoBehaviour
 
     public bool findVector()
     {
-        float ax = Input.acceleration.x;
-        float az = Input.acceleration.z;
+        // Noise filter
+        float ax = 0;
+        float az = 0;
+        if( System.Math.Abs(Input.acceleration.x) > 0.05 )
+            ax = Input.acceleration.x;
+        if( System.Math.Abs(Input.acceleration.z) > 0.05 )
+            az = Input.acceleration.z;
 
         float magnitude = Mathf.Sqrt(ax * ax + az * az);
+        
         avgMagnitude = avgMagnitude + ((magnitude - pastMagnitudes[head]) / maxSamples);
         pastMagnitudes[head] = magnitude;
 
-        float direction;
+        /*
+        float direction = 0;
 
         if (ax == 0)
         {
@@ -116,7 +127,7 @@ public class CameraMovement : MonoBehaviour
         }
         else
         {
-            direction = Mathf.Atan(az / ax);
+            direction = Mathf.Atan( System.Math.Abs(az) / System.Math.Abs(ax));
 
             if (az > 0 && ax < 0)
             {
@@ -131,14 +142,23 @@ public class CameraMovement : MonoBehaviour
                 direction = 2 * PI - direction;
             }
         }
-        avgDirection = avgDirection + (direction - pastDirections[head]) / maxSamples;
+        avgDirection = avgDirection + (direction - pastDirections[prevVal]) / maxSamples;
         pastDirections[head] = direction;
+        */
+        
+        avgX = avgX + (ax - pastXVal[head]) / maxSamples;
+        pastXVal[head] = ax;
+        avgZ = avgZ + (az - pastXVal[head]) / maxSamples;
+        pastXVal[head] = az;
+        
+
+
         head++;
         if (head == maxSamples)
         {
             head = 0;
         }
 
-        return avgMagnitude > magnitudeThreshold;
+        return (avgMagnitude > magnitudeThreshold);
     }
 }
